@@ -1,19 +1,13 @@
 import axios from "axios";
-import { rapidApiKey } from "../constants";
+import { apiKey } from "../constants";
 
-const searchEndpoint = 'https://weatherapi-com.p.rapidapi.com/search.json';
-const forcastEndpoint = 'https://weatherapi-com.p.rapidapi.com/forecast.json';
-
+const forecastEndpoint = params=> `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${params.cityName}&days=${params.days}`;
+const locationsEndpoint = params=> `https://api.weatherapi.com/v1/search.json?key=${apiKey}&q=${params.cityName}`;
 const apiCall = async (endpoint, params)=>{
     const options = {
         method: 'GET',
         url: endpoint,
-        params: params,
-        headers: {
-        'X-RapidAPI-Key': rapidApiKey,
-        'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
-        }
-      };
+    };
 
       try{
         const response = await axios.request(options);
@@ -25,9 +19,11 @@ const apiCall = async (endpoint, params)=>{
 }
 
 export const fetchWeatherForecast = params=>{
-    return apiCall(forcastEndpoint, params);
+    let forecastUrl = forecastEndpoint(params);
+    return apiCall(forecastUrl);
 }
 
 export const fetchLocations = params=>{
-    return apiCall(searchEndpoint, params);
+    let locationsUrl = locationsEndpoint(params);
+    return apiCall(locationsUrl);
 }

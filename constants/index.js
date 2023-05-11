@@ -1,4 +1,4 @@
-export const rapidApiKey = 'place your rapi api key here from : https://rapidapi.com/weatherapi/api/weatherapi-com';
+export const apiKey = 'place your api key here from : https://www.weatherapi.com';
 
 export const weatherImages = {
     'Partly cloudy': require('../assets/images/partlycloudy.png'),

@@ -1,8 +1,8 @@
-import { View, Text, Image, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TextInput, TouchableOpacity, ScrollView } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MagnifyingGlassIcon, XMarkIcon } from 'react-native-heroicons/outline'
-import { MapPinIcon } from 'react-native-heroicons/solid'
+import { CalendarDaysIcon, MapPinIcon } from 'react-native-heroicons/solid'
 import { debounce } from "lodash";
 import { theme } from '../theme';
 import { fetchLocations, fetchWeatherForecast } from '../api/weather';
@@ -21,7 +21,8 @@ export default function HomeScreen() {
   const handleSearch = search=>{
     // console.log('value: ',search);
     if(search && search.length>2)
-      fetchLocations({q: search}).then(data=>{
+      fetchLocations({cityName: search}).then(data=>{
+        // console.log('got locations: ',data);
         setLocations(data);
       })
   }
@@ -31,8 +32,8 @@ export default function HomeScreen() {
     toggleSearch(false);
     setLocations([]);
     fetchWeatherForecast({
-      q: loc.name,
-      days: '3'
+      cityName: loc.name,
+      days: '7'
     }).then(data=>{
       setLoading(false);
       setWeather(data);
@@ -51,8 +52,8 @@ export default function HomeScreen() {
       cityName = myCity;
     }
     fetchWeatherForecast({
-      q: cityName,
-      days: '3'
+      cityName,
+      days: '7'
     }).then(data=>{
       // console.log('got data: ',data.forecast.forecastday);
       setWeather(data);
@@ -68,7 +69,10 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 relative">
       <StatusBar style="light" />
-      <Image blurRadius={70} source={require('../assets/images/bg.png')} className="absolute w-full h-full" />
+      <Image 
+        blurRadius={70} 
+        source={require('../assets/images/bg.png')} 
+        className="absolute w-full h-full" />
         {
           loading? (
             <View className="flex-1 flex-row justify-center items-center">
@@ -78,11 +82,18 @@ export default function HomeScreen() {
             <SafeAreaView className="flex flex-1">
               {/* search section */}
               <View style={{height: '7%'}} className="mx-4 relative z-50">
-                <View className="flex-row justify-end items-center rounded-full" style={{backgroundColor: showSearch? theme.bgWhite(0.2): 'transparent'}}>
+                <View 
+                  className="flex-row justify-end items-center rounded-full" 
+                  style={{backgroundColor: showSearch? theme.bgWhite(0.2): 'transparent'}}>
                   
                     {
                       showSearch? (
-                        <TextInput onChangeText={handleTextDebounce} placeholder="Search city" placeholderTextColor={'lightgray'} className="pl-6 h-10 pb-1 flex-1 text-base text-white" />
+                        <TextInput 
+                          onChangeText={handleTextDebounce} 
+                          placeholder="Search city" 
+                          placeholderTextColor={'lightgray'} 
+                          className="pl-6 h-10 pb-1 flex-1 text-base text-white" 
+                        />
                       ):null
                     }
                     <TouchableOpacity 
@@ -127,7 +138,8 @@ export default function HomeScreen() {
               <View className="mx-4 flex justify-around flex-1 mb-2">
                 {/* location */}
                 <Text className="text-white text-center text-2xl font-bold">
-                  {location?.name}, <Text className="text-lg font-semibold text-gray-300">{location?.country}</Text>
+                  {location?.name}, 
+                  <Text className="text-lg font-semibold text-gray-300">{location?.country}</Text>
                 </Text>
                 {/* weather icon */}
                 <View className="flex-row justify-center">
@@ -139,8 +151,12 @@ export default function HomeScreen() {
                 </View>
                 {/* degree celcius */}
                 <View className="space-y-2">
-                    <Text className="text-center font-bold text-white text-6xl ml-5">{current?.temp_c}&#176;</Text>
-                    <Text className="text-center text-white text-xl tracking-widest">{current?.condition?.text}</Text>
+                    <Text className="text-center font-bold text-white text-6xl ml-5">
+                      {current?.temp_c}&#176;
+                    </Text>
+                    <Text className="text-center text-white text-xl tracking-widest">
+                      {current?.condition?.text}
+                    </Text>
                 </View>
 
                 {/* other stats */}
@@ -164,29 +180,45 @@ export default function HomeScreen() {
               </View>
 
               {/* forecast for next days */}
-              <View className="mb-2 mx-6 flex-row justify-between items-center">
-                {
-                  weather?.forecast?.forecastday?.map((item,index)=>{
-                    const date = new Date(item.date);
-                    const options = { weekday: 'long' };
-                    let dayName = date.toLocaleDateString('en-US', options);
-                    dayName = dayName.split(',')[0];
+              <View className="mb-2 space-y-3">
+                <View className="flex-row items-center mx-5 space-x-2">
+                  <CalendarDaysIcon size="22" color="white" />
+                  <Text className="text-white text-base">Daily forecast</Text>
+                </View>
+                <ScrollView   
+                  horizontal
+                  contentContainerStyle={{paddingHorizontal: 15}}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  {
+                    weather?.forecast?.forecastday?.map((item,index)=>{
+                      const date = new Date(item.date);
+                      const options = { weekday: 'long' };
+                      let dayName = date.toLocaleDateString('en-US', options);
+                      dayName = dayName.split(',')[0];
 
-                    return (
-                      <View key={index} className="flex justify-center items-center rounded-3xl py-3 space-y-1" 
-                        style={{backgroundColor: theme.bgWhite(0.15), width: '29%'}}>
-                        <Image 
-                          // source={{uri: 'https:'+item?.day?.condition?.icon}}
-                          source={weatherImages[item?.day?.condition?.text || 'other']}
-                            className="w-11 h-11" />
-                        <Text className="text-white">{dayName}</Text>
-                        <Text className="text-white text-xl font-semibold">{item?.day?.avgtemp_c}&#176;</Text>
-                      </View>
-                    )
-                  })
-                }
-                
+                      return (
+                        <View 
+                          key={index} 
+                          className="flex justify-center items-center w-24 rounded-3xl py-3 space-y-1 mr-4" 
+                          style={{backgroundColor: theme.bgWhite(0.15)}}
+                        >
+                          <Image 
+                            // source={{uri: 'https:'+item?.day?.condition?.icon}}
+                            source={weatherImages[item?.day?.condition?.text || 'other']}
+                              className="w-11 h-11" />
+                          <Text className="text-white">{dayName}</Text>
+                          <Text className="text-white text-xl font-semibold">
+                            {item?.day?.avgtemp_c}&#176;
+                          </Text>
+                        </View>
+                      )
+                    })
+                  }
+                  
+                </ScrollView>
               </View>
+              
             
             </SafeAreaView>
           )
