@@ -1,6 +1,6 @@
 # Weather-App-React-Native
 
-![Image](https://cdn.dribbble.com/userupload/6958364/file/original-9ca93c2dd96a84d5364670135de826d4.png?compress=1&resize=752x)
+![Image](https://cdn.dribbble.com/userupload/6958364/file/original-9ca93c2dd96a84d5364670135de826d4.png?resize=1600x1200)
 
   
   <p align="left">
