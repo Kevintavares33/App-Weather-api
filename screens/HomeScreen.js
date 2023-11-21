@@ -1,66 +1,63 @@
-import { View, Text, Image, TextInput, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useCallback, useEffect, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MagnifyingGlassIcon, XMarkIcon } from 'react-native-heroicons/outline'
-import { CalendarDaysIcon, MapPinIcon } from 'react-native-heroicons/solid'
-import { debounce } from "lodash";
-import { theme } from '../theme';
-import { fetchLocations, fetchWeatherForecast } from '../api/weather';
-import * as Progress from 'react-native-progress';
 import { StatusBar } from 'expo-status-bar';
-import { weatherImages } from '../constants';
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from 'react';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MagnifyingGlassIcon, XMarkIcon } from 'react-native-heroicons/outline';
+import { CalendarDaysIcon, MapPinIcon } from 'react-native-heroicons/solid';
+import * as Progress from 'react-native-progress';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchLocations, fetchWeatherForecast } from '../api/weather';
+import { theme } from '../theme';
 import { getData, storeData } from '../utils/asyncStorage';
-
 export default function HomeScreen() {
   const [showSearch, toggleSearch] = useState(false);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState({})
+  const [lang, setLang] = useState('pt')
 
-
-  const handleSearch = search=>{
-    // console.log('value: ',search);
-    if(search && search.length>2)
-      fetchLocations({cityName: search}).then(data=>{
-        // console.log('got locations: ',data);
+  const handleSearch = search => {
+    if (search && search.length > 2)
+      fetchLocations({ cityName: search, lang }).then(data => {
         setLocations(data);
-      })
+      });
   }
 
-  const handleLocation = loc=>{
+  const handleLocation = loc => {
     setLoading(true);
     toggleSearch(false);
     setLocations([]);
     fetchWeatherForecast({
       cityName: loc.name,
-      days: '7'
-    }).then(data=>{
+      days: '7',
+      lang,
+    }).then(data => {
       setLoading(false);
       setWeather(data);
-      storeData('city',loc.name);
+      storeData('city', loc.name);
     })
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchMyWeatherData();
-  },[]);
+  }, []);
 
-  const fetchMyWeatherData = async ()=>{
+  const fetchMyWeatherData = async () => {
     let myCity = await getData('city');
     let cityName = 'Islamabad';
-    if(myCity){
+    if (myCity) {
       cityName = myCity;
     }
     fetchWeatherForecast({
       cityName,
-      days: '7'
-    }).then(data=>{
-      // console.log('got data: ',data.forecast.forecastday);
+      days: '7',
+      lang,
+    }).then(data => {
       setWeather(data);
       setLoading(false);
     })
-    
   }
+
 
   const handleTextDebounce = useCallback(debounce(handleSearch, 1200), []);
 
@@ -144,8 +141,8 @@ export default function HomeScreen() {
                 {/* weather icon */}
                 <View className="flex-row justify-center">
                   <Image 
-                    // source={{uri: 'https:'+current?.condition?.icon}} 
-                    source={weatherImages[current?.condition?.text || 'other']} 
+                     source={{uri: 'https:'+current?.condition?.icon}}
+                  //  source={weatherImages[current?.condition?.text || 'other']} 
                     className="w-52 h-52" />
                   
                 </View>
@@ -204,8 +201,8 @@ export default function HomeScreen() {
                           style={{backgroundColor: theme.bgWhite(0.15)}}
                         >
                           <Image 
-                            // source={{uri: 'https:'+item?.day?.condition?.icon}}
-                            source={weatherImages[item?.day?.condition?.text || 'other']}
+                            source={{uri: 'https:'+item?.day?.condition?.icon}}
+                          //  source={weatherImages[item?.day?.condition?.text || 'other']}
                               className="w-11 h-11" />
                           <Text className="text-white">{dayName}</Text>
                           <Text className="text-white text-xl font-semibold">
